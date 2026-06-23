@@ -1,0 +1,175 @@
+{
+  "entities": {
+    "MediaItem": {
+      "title": "MediaItem",
+      "description": "An Anime or Donghua series entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["anime", "donghua"] },
+        "title": { "type": "string" },
+        "alternativeTitle": { "type": "string" },
+        "description": { "type": "string" },
+        "genres": { "type": "array", "items": { "type": "string" } },
+        "studio": { "type": "string" },
+        "author": { "type": "string" },
+        "status": { "type": "string", "enum": ["Ongoing", "Completed", "Upcoming"] },
+        "releaseDate": { "type": "string" },
+        "episodesCount": { "type": "integer" },
+        "duration": { "type": "string" },
+        "rating": { "type": "number" },
+        "views": { "type": "integer" },
+        "popularityRank": { "type": "integer" },
+        "trailerUrl": { "type": "string" },
+        "posterUrl": { "type": "string" },
+        "bannerUrl": { "type": "string" },
+        "cast": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "role": { "type": "string" },
+              "imageUrl": { "type": "string" }
+            },
+            "required": ["id", "name", "role"]
+          }
+        },
+        "featured": { "type": "boolean" },
+        "isTrending": { "type": "boolean" }
+      },
+      "required": ["type", "title", "description", "genres", "studio", "status", "releaseDate", "episodesCount", "duration", "rating", "views", "popularityRank", "posterUrl", "bannerUrl", "cast"]
+    },
+    "Episode": {
+      "title": "Episode",
+      "description": "An individual episode belonging to an Anime or Donghua",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "mediaId": { "type": "string" },
+        "episodeNumber": { "type": "integer" },
+        "title": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "duration": { "type": "string" },
+        "subtitles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "lang": { "type": "string" },
+              "src": { "type": "string" }
+            },
+            "required": ["label", "lang", "src"]
+          }
+        }
+      },
+      "required": ["mediaId", "episodeNumber", "title", "thumbnail", "videoUrl", "duration"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "User feedback or comment on a series or specific episode",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "mediaId": { "type": "string" },
+        "episodeId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userAvatar": { "type": "string" },
+        "userBadge": { "type": "string" },
+        "text": { "type": "string" },
+        "rating": { "type": "number" },
+        "likes": { "type": "integer" },
+        "likedBy": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["mediaId", "userName", "userAvatar", "text", "likes", "likedBy", "createdAt"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User settings, achievements, and statistics profile",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "joinDate": { "type": "string" },
+        "watchlist": { "type": "array", "items": { "type": "string" } },
+        "likes": { "type": "array", "items": { "type": "string" } },
+        "ratings": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "badges": { "type": "array", "items": { "type": "string" } },
+        "achievements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "unlockedAt": { "type": "string" }
+            },
+            "required": ["id", "title", "description", "unlockedAt"]
+          }
+        },
+        "isBanned": { "type": "boolean" }
+      },
+      "required": ["email", "displayName", "avatarUrl", "joinDate", "watchlist", "likes", "ratings", "badges", "achievements"]
+    },
+    "SystemNotification": {
+      "title": "SystemNotification",
+      "description": "App notification alerts of new releases and events",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["episode", "announcement", "system"] },
+        "mediaId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "read": { "type": "boolean" }
+      },
+      "required": ["title", "message", "type", "createdAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Privileged users allowed to manage content",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string" }
+      },
+      "required": ["email"]
+    }
+  },
+  "firestore": {
+    "/media/{mediaId}": {
+      "schema": "MediaItem",
+      "description": "Collection of all Anime and Donghua series items"
+    },
+    "/media/{mediaId}/episodes/{episodeId}": {
+      "schema": "Episode",
+      "description": "Sub-collection of episodes for each media item"
+    },
+    "/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments left on episodes or general series"
+    },
+    "/profiles/{userId}": {
+      "schema": "UserProfile",
+      "description": "Detailed profile data including preferences and badges"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "SystemNotification",
+      "description": "Push and system-wide notifications feed"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Registered administrator accounts"
+    }
+  }
+}

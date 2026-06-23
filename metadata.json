@@ -1,0 +1,6 @@
+{
+  "name": "ANIME STREAM",
+  "description": "A premium cinematic streaming applet for Anime featuring personalized AI search helpers, beautiful content catalogs, interactive video players, and high-end visual design.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

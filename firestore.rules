@@ -1,0 +1,138 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ----------------- GLOBAL SAFETY NET -----------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // ----------------- GLOBAL HELPERS -----------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == "tanvirgod6@gmail.com"
+      );
+    }
+    
+    // ----------------- VALIDATION BLUEPRINTS -----------------
+    function isValidMediaItem(data) {
+      return data.type in ['anime', 'donghua']
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.description is string && data.description.size() <= 5000
+        && data.genres is list
+        && data.studio is string && data.studio.size() <= 200
+        && data.status in ['Ongoing', 'Completed', 'Upcoming']
+        && data.releaseDate is string && data.releaseDate.size() <= 64
+        && data.episodesCount is int
+        && data.duration is string && data.duration.size() <= 64
+        && data.rating is number
+        && data.views is int
+        && data.popularityRank is int
+        && data.posterUrl is string && data.posterUrl.size() <= 1000
+        && data.bannerUrl is string && data.bannerUrl.size() <= 1000;
+    }
+    
+    function isValidEpisode(data) {
+      return data.mediaId is string && data.mediaId.size() <= 128
+        && data.episodeNumber is int
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.thumbnail is string && data.thumbnail.size() <= 1000
+        && data.videoUrl is string && data.videoUrl.size() <= 2000
+        && data.duration is string && data.duration.size() <= 64;
+    }
+    
+    function isValidComment(data) {
+      return data.mediaId is string && data.mediaId.size() <= 128
+        && data.userName is string && data.userName.size() > 0 && data.userName.size() <= 100
+        && data.userAvatar is string && data.userAvatar.size() <= 1000
+        && data.text is string && data.text.size() > 0 && data.text.size() <= 1000
+        && data.likes is int
+        && data.likedBy is list
+        && data.createdAt is string && data.createdAt.size() <= 64;
+    }
+    
+    function isValidUserProfile(data) {
+      return data.email is string && data.email.size() <= 128
+        && data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 100
+        && data.avatarUrl is string && data.avatarUrl.size() <= 1000
+        && data.joinDate is string && data.joinDate.size() <= 64
+        && data.watchlist is list
+        && data.likes is list
+        && data.badges is list
+        && data.achievements is list;
+    }
+
+    function isValidSystemNotification(data) {
+      return data.title is string && data.title.size() <= 200
+        && data.message is string && data.message.size() <= 2000
+        && data.type in ['episode', 'announcement', 'system']
+        && data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    // ----------------- MATCH RULES FOR COLLECTIONS -----------------
+
+    // 1. Admins Collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Admins managed securely or via bootstrap
+    }
+
+    // 2. Media Items
+    match /media/{mediaId} {
+      allow read: if true; // Public catalog
+      allow create: if isAdmin() && isValidMediaItem(request.resource.data);
+      allow update: if (isAdmin() && isValidMediaItem(request.resource.data))
+                    || (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])); // Normal users can only increment views count
+      allow delete: if isAdmin();
+
+      // Nested Collection: Sub-episodes of a title
+      match /episodes/{episodeId} {
+        allow read: if true;
+        allow create: if isAdmin() && isValidEpisode(request.resource.data);
+        allow update: if isAdmin() && isValidEpisode(request.resource.data);
+        allow delete: if isAdmin();
+      }
+    }
+
+    // 3. Comments
+    match /comments/{commentId} {
+      allow read: if true; // Public feedback
+      allow create: if isSignedIn() && isValidComment(request.resource.data);
+      allow update: if (isSignedIn() && isValidComment(request.resource.data) && (
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy'])
+                    )) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 4. User Profiles
+    match /profiles/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidUserProfile(request.resource.data);
+      allow update: if isSignedIn() && request.auth.uid == userId && isValidUserProfile(request.resource.data) && (
+                      !request.resource.data.keys().contains('isBanned') || request.resource.data.isBanned == resource.data.isBanned
+                    ) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 5. System Notifications
+    match /notifications/{notificationId} {
+      allow read: if true; // Public notices
+      allow create: if isAdmin() && isValidSystemNotification(request.resource.data);
+      allow update: if (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])) || isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}
