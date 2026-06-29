@@ -1127,7 +1127,7 @@ export default function App() {
                           >
                             <div className="relative aspect-[16/9] w-full overflow-hidden bg-stone-950">
                               <img
-                                src={mediaItem.bannerUrl || mediaItem.posterUrl}
+                                src={mediaItem.bannerUrl || mediaItem.posterUrl || null}
                                 className="w-full h-full object-cover transition duration-350 group-hover/cw:scale-105 filter brightness-90 group-hover/cw:brightness-100 animate-fade-in"
                                 alt={mediaItem.title}
                               />
@@ -1245,7 +1245,7 @@ export default function App() {
                 {/* Immersive Film Poster Cover container */}
                 <div className="relative aspect-[2/2.95] w-full overflow-hidden bg-stone-900">
                   <img 
-                    src={item.posterUrl} 
+                    src={item.posterUrl || null} 
                     className="w-full h-full object-cover transition duration-500 filter group-hover:brightness-95 group-hover:scale-[1.08] pointer-events-none" 
                     referrerPolicy="no-referrer"
                     alt={item.title} 
@@ -2063,7 +2063,7 @@ export default function App() {
                         {/* Widescreen Thumbnail resembling Prime Video playlist items */}
                         <div className="relative aspect-[16/10] w-24 rounded-lg overflow-hidden shrink-0 bg-stone-900 border border-white/5">
                           <img 
-                            src={ep.thumbnail || selectedMedia.posterUrl} 
+                            src={ep.thumbnail || selectedMedia.posterUrl || null} 
                             className="w-full h-full object-cover opacity-80 group-hover/ep:scale-105 transition duration-300" 
                             alt="" 
                           />
@@ -2214,7 +2214,7 @@ export default function App() {
                         {/* Immersive Film Poster Cover container */}
                         <div className="relative aspect-[2/2.95] w-full overflow-hidden bg-stone-900">
                           <img 
-                            src={item.posterUrl} 
+                            src={item.posterUrl || null} 
                             className="w-full h-full object-cover transition duration-500 filter group-hover:brightness-95 group-hover:scale-[1.08] pointer-events-none" 
                             alt={item.title} 
                           />
@@ -2335,7 +2335,7 @@ export default function App() {
                         <AnimatePresence initial={false} custom={slideDirection} mode="popLayout">
                           <motion.img 
                             key={currentMedia.id}
-                            src={currentMedia.bannerUrl || currentMedia.posterUrl} 
+                            src={currentMedia.bannerUrl || currentMedia.posterUrl || null} 
                             custom={slideDirection}
                             variants={{
                               enter: (dir: number) => ({
@@ -2517,128 +2517,6 @@ export default function App() {
                     </div>
                   );
                 })()}
-
-                {/* DYNAMIC 3D COVERFLOW DAILY HOT CULTIVATIONS SLIDER */}
-                {dailyTrending.length > 0 && (
-                  <div className="relative mb-12 select-none overflow-hidden pb-4 pt-2">
-                    <div className="flex items-center justify-between mb-5">
-                      <div className="text-left">
-                        <span className="text-[10px] font-mono text-amber-500 tracking-[0.2em] uppercase font-bold">★ Masterpiece Showcase</span>
-                        <h2 className="text-lg sm:text-xl font-bold font-sans tracking-tight text-white uppercase mt-0.5">DAILY HOT CULTIVATIONS</h2>
-                      </div>
-                      
-                      {/* Control arrows for the Cover-flow */}
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => setDailyTrendingIndex(prev => Math.max(0, prev - 1))}
-                          disabled={dailyTrendingIndex === 0}
-                          className="p-2 bg-white/[0.02] hover:bg-white/[0.08] disabled:opacity-20 border border-white/5 disabled:pointer-events-none rounded-xl text-stone-300 hover:text-white transition cursor-pointer"
-                          title="Previous Daily"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </button>
-                        <span className="text-[10px] font-mono text-stone-500 px-1">{dailyTrendingIndex + 1} / {dailyTrending.length}</span>
-                        <button
-                          onClick={() => setDailyTrendingIndex(prev => Math.min(dailyTrending.length - 1, prev + 1))}
-                          disabled={dailyTrendingIndex === dailyTrending.length - 1}
-                          className="p-2 bg-white/[0.02] hover:bg-white/[0.08] disabled:opacity-20 border border-white/5 disabled:pointer-events-none rounded-xl text-stone-300 hover:text-white transition cursor-pointer"
-                          title="Next Daily"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 3D Coverflow Container with Perspective view */}
-                    <div className="relative h-[220px] sm:h-[280px] flex items-center justify-center overflow-x-hidden" style={{ perspective: '1000px' }}>
-                      <div className="flex items-center justify-center w-full max-w-4xl relative h-full">
-                        {dailyTrending.map((item, idx) => {
-                          const position = idx - dailyTrendingIndex;
-                          const absPosition = Math.abs(position);
-                          
-                          // Render only items in proximity to center
-                          if (absPosition > 2) return null;
-                          
-                          // Determine positioning translation spacing
-                          let xOffset = position * 150; 
-                          if (position < 0) xOffset -= 45;
-                          if (position > 0) xOffset += 45;
-                          
-                          const zIndex = 10 - absPosition;
-                          const scale = position === 0 ? 1.15 : 0.90;
-                          const rotateY = position === 0 ? 0 : position > 0 ? -28 : 28;
-                          const opacity = position === 0 ? 1 : absPosition === 1 ? 0.75 : 0.35;
-                          
-                          return (
-                            <motion.div
-                              key={item.id}
-                              style={{
-                                zIndex,
-                                transformStyle: 'preserve-3d',
-                              }}
-                              animate={{
-                                x: xOffset,
-                                scale,
-                                rotateY,
-                                opacity,
-                                filter: position === 0 ? 'blur(0px)' : 'blur(1px)'
-                              }}
-                              transition={{
-                                type: 'spring',
-                                stiffness: 280,
-                                damping: 24
-                              }}
-                              onClick={() => {
-                                if (position === 0) {
-                                  handleShowDetails(item);
-                                } else {
-                                  setDailyTrendingIndex(idx);
-                                }
-                              }}
-                              className={`absolute w-[125px] sm:w-[165px] aspect-[2/2.95] rounded-3xl overflow-hidden cursor-pointer shadow-2xl border transition-all ${
-                                position === 0 
-                                  ? 'border-amber-500/50 shadow-[0_0_35px_rgba(245,158,11,0.25)] bg-[#121619]' 
-                                  : 'border-white/[0.04] bg-[#0c0f12]/80 hover:border-white/10'
-                              }`}
-                            >
-                              <img 
-                                src={item.posterUrl} 
-                                className="w-full h-full object-cover select-none pointer-events-none" 
-                                alt="" 
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent flex flex-col justify-end p-3 sm:p-4">
-                                <h3 className="text-[10px] sm:text-xs font-bold text-white tracking-wide truncate leading-tight">
-                                  {item.title}
-                                </h3>
-                                <div className="flex items-center justify-between gap-1 mt-1">
-                                  <span className="text-[8px] sm:text-[9.5px] text-amber-400 font-extrabold font-mono flex items-center gap-0.5">
-                                    ★ {item.rating.toFixed(1)}
-                                  </span>
-                                  <span className="text-[7.5px] sm:text-[8px] text-zinc-400 font-mono truncate max-w-[65px] uppercase font-bold tracking-wider">
-                                    {item.type}
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              {/* Hover glow overlay card indicator */}
-                              <div className="absolute inset-0 bg-white/[0.02] opacity-0 hover:opacity-100 transition duration-300" />
-                              
-                              {/* Center play target indicator */}
-                              {position === 0 && (
-                                <div className="absolute inset-x-0 top-1/3 flex justify-center pointer-events-none">
-                                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-amber-500 text-stone-950 flex items-center justify-center shadow-2xl border border-white/20 animate-pulse transition duration-300">
-                                    <Play className="h-4 w-4 sm:h-5 sm:w-5 fill-stone-950 text-stone-950 ml-0.5" />
-                                  </div>
-                                </div>
-                              )}
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
 
             {/* Premium Category Filter Glass Tabs */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 select-none">
@@ -2846,7 +2724,7 @@ export default function App() {
                         {/* Immersive Film Poster Cover container */}
                         <div className="relative aspect-[2/2.95] w-full overflow-hidden bg-stone-900">
                           <img 
-                            src={item.posterUrl} 
+                            src={item.posterUrl || null} 
                             className="w-full h-full object-cover transition duration-500 filter group-hover:brightness-95 group-hover:scale-[1.08] pointer-events-none" 
                             alt={item.title} 
                           />
@@ -3057,12 +2935,12 @@ export default function App() {
 
               {/* Banner Cover Cover Frame */}
               <div className="relative aspect-[21/9] w-full rounded-[2.5rem] overflow-hidden border border-white/[0.04] shadow-2xl">
-                <img src={selectedMedia.bannerUrl} className="w-full h-full object-cover filter brightness-50 grayscale contrast-125 saturate-50 pointer-events-none" alt="" />
+                <img src={selectedMedia.bannerUrl || null} className="w-full h-full object-cover filter brightness-50 grayscale contrast-125 saturate-50 pointer-events-none" alt="" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050708] via-transparent to-transparent opacity-80" />
                 
                 {/* Details absolute layout */}
                 <div className="absolute bottom-6 left-6 md:left-10 flex items-end gap-5">
-                  <img src={selectedMedia.posterUrl} className="h-36 w-26 object-cover rounded-2xl border border-white/20 shadow-2xl hidden sm:block pointer-events-none" alt="" />
+                  <img src={selectedMedia.posterUrl || null} className="h-36 w-26 object-cover rounded-2xl border border-white/20 shadow-2xl hidden sm:block pointer-events-none" alt="" />
                   <div className="space-y-1.5">
                     <span className="text-[9px] bg-amber-500/15 text-amber-300 border border-amber-500/25 px-2.5 py-0.5 rounded-full uppercase tracking-widest font-mono">
                       ★ {selectedMedia.rating} Stream Quality

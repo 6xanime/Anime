@@ -1545,7 +1545,7 @@ export default function AdminPanel({ allMedia, onRefreshAll, onClose }: AdminPan
                       {filteredManageMedia.map(item => (
                         <tr key={item.id} className="hover:bg-white/[0.01] transition">
                           <td className="py-3 px-4">
-                            <img src={item.posterUrl} className="h-10 w-8.5 rounded object-cover pointer-events-none" alt="" />
+                            <img src={item.posterUrl || null} className="h-10 w-8.5 rounded object-cover pointer-events-none" alt="" />
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-1.5 flex-wrap">
